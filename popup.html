@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NGS Scratch Image Downloader</title>
+    <link href="popup.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body id="popupbody">
+    <h1>NGS Scratch Downloader</h1>
+    <div id="validWebsite">
+        <div>
+            JSON Files:<br>
+            <button id="itemlistButton">Item List JSON</button> <button id="bonuslistButton">Bonus List JSON</button>
+        </div>
+        <div>
+            Item Names:<br>
+            <button id="itemNamelistButton">Item Names</button> <button id="bonusNamelistButton">Bonus Names</button>
+        </div>
+        <div>
+            Scratch Images:<br>
+            <button id="itemImageButton">Item Images</button> <button id="bonusImageButton">Bonus Images</button> <button id="allImageButton">All Images</button>
+        </div>
+    </div>
+    <div id="invalidWebsite" hidden=true>
+        Currently not on a NGS Scratch Site
+    </div>
+    <script src="popup.js" charset="utf-8"></script>
+    <script src="jquery-3.6.0.min.js" charset="utf-8"></script>
+</body>
+
+</html>
