@@ -12,8 +12,6 @@ document.addEventListener("DOMContentLoaded", function() {
             $('#bonusImageButton').on("click", onClick_DownloadBonusItemImages)
             $('#allImageButton').on("click", onClick_DownloadAllItemImages)
             $('#itemNamelistButton').on("click", onClick_DownloadItemName)
-            $('#bonusNamelistButton').on("click", onClick_DownloadBonusName)
-            console.log(scratchType)
             $(`#${scratchType}Scratch`).show()
         } else {
             $('#validWebsite').hide()
@@ -38,9 +36,9 @@ function GetScratchID(url) {
 function onClick_DownloadItemListJson() {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         let activeTab = tabs[0];
-        console.log(tabs[0])
         let itemlistJson = new URL("js/itemlist.json", activeTab.url).href
         chrome.downloads.download({
+            filename: `${scratchID}_itemlist.json`,
             url: itemlistJson
         });
     });
@@ -49,9 +47,9 @@ function onClick_DownloadItemListJson() {
 function onClick_DownloadBonusListJson() {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         let activeTab = tabs[0];
-        console.log(tabs[0])
         let itemlistJson = new URL("js/bonuslist.json", activeTab.url).href
         chrome.downloads.download({
+            filename: `${scratchID}_bonuslist.json`,
             url: itemlistJson
         });
     });
