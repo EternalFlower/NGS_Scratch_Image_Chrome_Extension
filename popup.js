@@ -1,6 +1,10 @@
-const validSite = "pso2.jp\/players\/catalog\/(ac|sg|sp)scratch\/([0-9]{8}_[0-9]{2})\/"
-var scratchID = ""
-var scratchType = ""
+const validSite = "pso2.(jp|com)\/players\/catalog\/(ac|sg|sp)scratch\/([0-9]{8}_[0-9]{2})\/"
+var region = null
+var scratchData = {
+    name: null,
+    id: null,
+    type: null
+}
 
 document.addEventListener("DOMContentLoaded", function() {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
@@ -12,7 +16,8 @@ document.addEventListener("DOMContentLoaded", function() {
             $('#bonusImageButton').on("click", onClick_DownloadBonusItemImages)
             $('#allImageButton').on("click", onClick_DownloadAllItemImages)
             $('#itemNamelistButton').on("click", onClick_DownloadItemName)
-            $(`#${scratchType}Scratch`).show()
+            $('#bonusNamelistButton').on("click", onClick_DownloadBonusName)
+            $(`#${scratchData.type}Scratch`).show()
         } else {
             $('#validWebsite').hide()
             $('#invalidWebsite').show()
@@ -27,32 +32,35 @@ function GetScratchID(url) {
     if (regexMatch == null && url.match(itemRegex) == null)
         return false
 
-    scratchType = regexMatch[1]
-    scratchID = `${regexMatch[1]}_${regexMatch[2]}`
+    region = regexMatch[1]
+    scratchData.type = regexMatch[2]
+    scratchData.id = regexMatch[3]
 
     return true
 }
 
-function onClick_DownloadItemListJson() {
+function DownloadJSON(ListType) {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         let activeTab = tabs[0];
-        let itemlistJson = new URL("js/itemlist.json", activeTab.url).href
-        chrome.downloads.download({
-            filename: `${scratchID}_itemlist.json`,
-            url: itemlistJson
-        });
+        var jsonUrl = new URL(`js/${ListType}.json`, activeTab.url).href
+        $.ajax({
+            url: jsonUrl,
+            type: "GET",
+            dataType: "json"
+        }).then(data => {
+            let scratchName = region == "jp" ? data[0].scratchname : data[0].scratchname_en
+            let blob = new Blob([JSON.stringify(data, null, "\t")], { type: "text/plain;charset=utf-8" })
+            saveAs(blob, `${scratchData.type}${scratchData.id}_${ListType}_${scratchName}.json`);
+        })
     });
 }
 
+function onClick_DownloadItemListJson() {
+    DownloadJSON("itemlist")
+}
+
 function onClick_DownloadBonusListJson() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-        let activeTab = tabs[0];
-        let itemlistJson = new URL("js/bonuslist.json", activeTab.url).href
-        chrome.downloads.download({
-            filename: `${scratchID}_bonuslist.json`,
-            url: itemlistJson
-        });
-    });
+    DownloadJSON("bonuslist")
 }
 
 function onClick_DownloadItemImages() {
@@ -68,7 +76,7 @@ function onClick_DownloadAllItemImages() {
     DownloadItemImages("bonuslist")
 }
 
-function DownloadItemImages(jsonName) {
+function DownloadItemImages(ListType) {
     function urlToPromise(url) {
         return new Promise(function(resolve, reject) {
             JSZipUtils.getBinaryContent(url, function(err, data) {
@@ -112,7 +120,7 @@ function DownloadItemImages(jsonName) {
 
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         var activeTab = tabs[0];
-        var jsonUrl = new URL(`js/${jsonName}.json`, activeTab.url).href
+        var jsonUrl = new URL(`js/${ListType}.json`, activeTab.url).href
         $.ajax({
             url: jsonUrl,
             type: "GET",
@@ -120,13 +128,14 @@ function DownloadItemImages(jsonName) {
         }).then(data => {
             let imageList = getImageList(activeTab.url, data)
             let zip = JSZip()
+            let scratchName = region == "jp" ? data[0].scratchname : data[0].scratchname_en
 
             imageList.forEach(image => {
                 zip.file(image[0], urlToPromise(image[1]), { binary: true });
             })
 
             zip.generateAsync({ type: "blob" }).then(function callback(blob) {
-                saveAs(blob, `${scratchID}_${jsonName}_images.zip`)
+                saveAs(blob, `${scratchData.type}${scratchData.id}_${ListType}_${scratchName}.zip`)
             });
         })
     })
@@ -140,10 +149,10 @@ function onClick_DownloadBonusName() {
     jsonToNameList("bonuslist")
 }
 
-function jsonToNameList(jsonName) {
+function jsonToNameList(ListType) {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         var activeTab = tabs[0];
-        var jsonUrl = new URL(`js/${jsonName}.json`, activeTab.url).href
+        var jsonUrl = new URL(`js/${ListType}.json`, activeTab.url).href
         $.ajax({
             url: jsonUrl,
             type: "GET",
@@ -151,11 +160,11 @@ function jsonToNameList(jsonName) {
         }).then(data => {
             let list = []
             data.forEach(elem => {
-                list.push(elem.name)
+                list.push(region == "jp" ? elem.name : elem.name_en)
             })
+            let scratchName = region == "jp" ? data[0].scratchname : data[0].scratchname_en
             let blob = new Blob([list.join("\n")], { type: "text/plain;charset=utf-8" })
-            saveAs(blob, `${scratchID}_${jsonName}_names.txt`);
-            return list
+            saveAs(blob, `${scratchData.type}${scratchData.id}_${ListType}_${scratchName}_namelist.txt`);
         })
     })
 }

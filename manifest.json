@@ -2,16 +2,19 @@
     "name": "NGS Scratch Image Downloader",
     "description": "Downloads Images for NGS Scratches",
     "version": "1.0",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "content_scripts": [{
         "matches": [
             "*://pso2.jp/players/catalog/acscratch/*/*",
             "*://pso2.jp/players/catalog/sgscratch/*/*",
-            "*://pso2.jp/players/catalog/spscratch/*/*"
+            "*://pso2.jp/players/catalog/spscratch/*/*",
+            "*://pso2.com/players/catalog/acscratch/*/*",
+            "*://pso2.com/players/catalog/sgscratch/*/*",
+            "*://pso2.com/players/catalog/spscratch/*/*"
         ],
-        "js": ["content.js"]
+        "js": ["jquery-3.6.0.min.js", "FileSaver.min.js", "jszip-utils.min.js", "jszip.min.js", "content.js"]
     }],
-    "browser_action": {
+    "action": {
         "default_popup": "popup.html"
     },
     "icons": {
@@ -20,7 +23,6 @@
         "128": "icon128.png"
     },
     "permissions": [
-        "downloads",
         "tabs"
     ]
 }
