@@ -89,29 +89,39 @@ function DownloadItemImages(ListType) {
         });
     }
 
+    function pushUniqueUrl(array, entry) {
+        var index = array.findIndex(x => x[1] == entry[1])
+
+        if (index == -1) {
+            array.push(entry)
+        }
+    }
+
     function getImageList(url, data) {
         var imagesList = []
         for (var index = 0; index < data.length; index++) {
             const illust = data[index].illust.split(","),
-                screenshot = data[index].ss.split(",")
+                screenshot = data[index].ss.split(","),
+                jp_name = data[index].name,
+                en_name = data[index].name_en
 
             if (data[index].ss.length > 1)
                 for (let l = 0; l < screenshot.length; l++) {
-                    imagesList.push([`${screenshot[l]}.jpg`, new URL(`../../img/item/ss/${screenshot[l]}.jpg`, url).href])
+                    pushUniqueUrl(imagesList, [`${screenshot[l]}_${jp_name}_${en_name}.jpg`, new URL(`../../img/item/ss/${screenshot[l]}.jpg`, url).href])
                 }
             else if (illust.length > 1) {
                 for (let l = 0; l < illust.length; l++) {
                     let n = "";
                     if (illust[l].match("il")) {
-                        imagesList.push([`${illust[l].replace("il", "")}.png`, new URL(`../../img/item/illust/${illust[l].replace("il", "")}.png`, url).href])
+                        pushUniqueUrl(imagesList, [`${illust[l].replace("il", "")}_${jp_name}_${en_name}.png`, new URL(`../../img/item/illust/${illust[l].replace("il", "")}.png`, url).href])
                     } else {
-                        imagesList.push([`${illust[l]}.png`, new URL(`img/ss/${illust[l]}.png`, url).href])
+                        pushUniqueUrl(imagesList, [`${illust[l]}_${jp_name}_${en_name}.png`, new URL(`img/ss/${illust[l]}.png`, url).href])
                     }
                 }
             } else if (illust[0].match("icon")) {
                 continue;
             } else {
-                imagesList.push([`${illust[0]}.png`, new URL(`img/ss/${illust[0]}.png`, url).href])
+                pushUniqueUrl(imagesList, [`${illust[0]}_${jp_name}_${en_name}.png`, new URL(`img/ss/${illust[0]}.png`, url).href])
             }
         }
 
@@ -130,13 +140,15 @@ function DownloadItemImages(ListType) {
             let zip = JSZip()
             let scratchName = region == "jp" ? data[0].scratchname : data[0].scratchname_en
 
-            imageList.forEach(image => {
-                zip.file(image[0], urlToPromise(image[1]), { binary: true });
-            })
+            if (imageList.length > 0) {
+                imageList.forEach(image => {
+                    zip.file(image[0], urlToPromise(image[1]), { binary: true });
+                })
 
-            zip.generateAsync({ type: "blob" }).then(function callback(blob) {
-                saveAs(blob, `${scratchData.type}${scratchData.id}_${ListType}_${scratchName}.zip`)
-            });
+                zip.generateAsync({ type: "blob" }).then(function callback(blob) {
+                    saveAs(blob, `${scratchData.type}${scratchData.id}_${ListType}_${scratchName}.zip`)
+                });
+            }
         })
     })
 }
